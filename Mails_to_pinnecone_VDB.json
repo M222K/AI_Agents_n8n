@@ -1,0 +1,189 @@
+{
+  "name": "Mails to pinnecone VDB",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3fd2ea5a-3a10-4475-a04d-f269c0e4bf67",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "https://docs.google.com/document/d/16zv9IisrxgJRBPsClZu2ky_tn4mDaTrqNDGFrCpfPp4/edit?addon_store&tab=t.0"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "4f199b48-2db0-46d9-bc7b-99486d32c85b",
+      "name": "Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "mck57lOSOYn9O0eh",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8ndoc",
+          "mode": "list",
+          "cachedResultName": "n8ndoc"
+        },
+        "options": {
+          "pineconeNamespace": "emails"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        420,
+        0
+      ],
+      "id": "bedfce5b-9d30-4f87-8b40-f6fa37c1896c",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "mx8gtynVaeyYa5Ln",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        380,
+        160
+      ],
+      "id": "4a7a0c96-d87e-40f4-967b-ad9fe593dffa",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "36XqVlUNOFkQBwRm",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        520,
+        160
+      ],
+      "id": "0a9f8ca5-61cb-4f9e-9aff-935eed632090",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 100,
+        "chunkOverlap": 10,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        520,
+        320
+      ],
+      "id": "dabe18e5-dda5-499f-b5d6-2d2e88a055fe",
+      "name": "Recursive Character Text Splitter"
+    }
+  ],
+  "pinData": {
+    "Google Docs": [
+      {
+        "json": {
+          "documentId": "16zv9IisrxgJRBPsClZu2ky_tn4mDaTrqNDGFrCpfPp4",
+          "content": "Mahak Kumrawat\nkumrawat2220@gmail.com\n\nAlice Wonderland \n alice.w@example.com\n\nBob The Builder\nbob.t.b@example.net\n\nCharlie Chaplin\nc.chaplin@example.org\n\nDiana Prince\n diana.p@example.com\n\nEthan Hunt\nethan.h@example.net\n\nFiona Apple\nfiona.a@example.org\n\nGeorge Clooney\ng.clooney@example.com\n"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Docs": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8ebf993e-cab0-4493-8082-8471998f7832",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e34d742d4c9fff3bed70ac59a25f077408c52e61109eb2122d8ebe5602b3665f"
+  },
+  "id": "WF8uBdFr6Azunmta",
+  "tags": []
+}

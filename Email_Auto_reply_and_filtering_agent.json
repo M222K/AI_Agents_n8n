@@ -1,0 +1,315 @@
+{
+  "name": "Email Auto reply and filtering agent",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -260,
+        -80
+      ],
+      "id": "2a4a69a9-bb07-43b1-bde0-b3f750f2ce92",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "kPn80Lih8M6044kg",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Role:\nYour task is to determine whether an email is related to a sponsorship deal or not.\n\nRespond with a JSON object containing the following fields:\n\nisSponsorship: Can be either \"true\" or \"false\".\nreasoning: Explain your answer.\nThink step by step about your response.\n{{ $json['Email Context'] }}\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -80
+      ],
+      "id": "d558e78c-94c8-404f-a7b4-166b257346ef",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        100
+      ],
+      "id": "08cb443e-bac8-40c0-94d5-97a858fcc684",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "36XqVlUNOFkQBwRm",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"isSponsorship\": {\n\t\t\t\"type\": \"boolean\"\n\t\t},\n\t\t\"reasoning\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        120
+      ],
+      "id": "3734cb47-ca2f-44f7-a3b0-fbb87323df87",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7edae6ee-a29b-4815-8b85-e590465deea4",
+              "name": "Email Context",
+              "value": "=From:{{ $json.headers.from }}\n\nSubject:{{ $json.headers.subject }}\n\nEmail Body,\n{{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -40,
+        -80
+      ],
+      "id": "a9c7d3fc-1aec-4cd6-a5d4-1bd9c7fb21b0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b4bd8856-c032-4834-a7bc-73f4617a82bf",
+              "leftValue": "={{ $json.output.isSponsorship }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        600,
+        -80
+      ],
+      "id": "181a8123-ba66-4bbf-97d8-721f6e02cfcb",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        800,
+        160
+      ],
+      "id": "bd592cc7-b602-4a2f-b30e-cbe365838352",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Role:\n\nYou work for a YouTube channel called AI mit Arnie. Your task is to respond to sponsorship inquiries by drafting a reply email.\n\nTask:\n\nCarefully review the email context below and write a friendly and professional email. Return only the email body in HTML format do not include a header, only the body!\n\nThe email should include details about sponsorship costs and conditions.\n\nConditions:\n\nSponsorship Terms for the YouTube Channel AI mit Arnie\nChannel Overview\nChannel Name: AI mit Arnie\nSubscribers: 13,000+\nAverage Views per Video: 2,000 - 10,000\nContent Focus: Artificial Intelligence\nSponsorship Pricing\nStandalone Video: €800 - €1,300\nIntegrated Sponsorship Mention (60 seconds): €600\n\nAdditional Info\nAI mit Arnie only accepts sponsors that make sense for its target audience. In general, the channel rejects anything that does not provide real value to viewers and does not promote products that the creator does not personally use.",
+              "role": "system"
+            },
+            {
+              "content": "=Email Context:{{ $('Edit Fields').item.json['Email Context'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        800,
+        -160
+      ],
+      "id": "69eb5b1c-6c9b-43a0-9e3b-32ae9f5b50f4",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "36XqVlUNOFkQBwRm",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "message": "={{ $json.message.content }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1160,
+        -160
+      ],
+      "id": "bb78e76d-ac66-4a19-89c1-885a2ff6ced3",
+      "name": "Gmail",
+      "webhookId": "b7ff31e1-6864-4299-a7cd-f26fbf38be93",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "kPn80Lih8M6044kg",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "20cfa464-198d-43cd-9d56-b34004a3df4b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e34d742d4c9fff3bed70ac59a25f077408c52e61109eb2122d8ebe5602b3665f"
+  },
+  "id": "fcg3P9VQoxuJIHrM",
+  "tags": []
+}

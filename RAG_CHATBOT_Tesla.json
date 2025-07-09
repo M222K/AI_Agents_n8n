@@ -1,0 +1,247 @@
+{
+  "name": "RAG CHATBOT Tesla",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -60
+      ],
+      "id": "fedff268-a0b5-405e-ab46-0b593f157acf",
+      "name": "When chat message received",
+      "webhookId": "a5189494-bb5b-4c5a-aa2d-44b9e2a6be82"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are an AI assistant specialized in analyzing Tesla's quarterly financial reports. Your primary task is to answer questions accurately and precisely using the vector database, which contains relevant documents Q1 2025 and Q3 2024.\n\nOnly provide information that you retrieve from the documents (or verified expert knowledge). If something is not included in the dataset or is unclear, clearly state that you do not have sufficient information.\n\nStructure of your responses:\n\nConcise and to the point\nSpecific numbers and facts, when available\nClearly indicate which quarterly report (Q1 or Q3) the information comes from\n\n\n\nObjective:\nProvide users with reliable and quick insights into Tesla's quarterly financials without unnecessary details."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -60
+      ],
+      "id": "0a338d45-a6a0-4739-9c93-aaa4259fd093",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        140
+      ],
+      "id": "bf986070-b4d5-42b6-b64b-447c763067a3",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "36XqVlUNOFkQBwRm",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        300,
+        140
+      ],
+      "id": "7e4e6334-d6fd-4931-9966-c3ceee25a905",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Returns the data from the document related to Tesla Q1 and Q3, the financials and outlook, merges and everything important from the earnings report. Always search the knowledge base before responding."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        160
+      ],
+      "id": "15f30d02-a14e-4d99-b05d-cf42a103dd0d",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8ntesla",
+          "mode": "list",
+          "cachedResultName": "n8ntesla"
+        },
+        "options": {
+          "pineconeNamespace": "tsln8n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        340
+      ],
+      "id": "eba2a5c9-46c0-4456-8f9b-925aa6220cd6",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "mx8gtynVaeyYa5Ln",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        540
+      ],
+      "id": "82f0528e-804c-48c8-9507-ccd4dcc17ec0",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "36XqVlUNOFkQBwRm",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        600,
+        400
+      ],
+      "id": "8b180da2-d083-4ef1-bcff-19ecc79d879b",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "36XqVlUNOFkQBwRm",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5aa0b047-891e-4cdd-aa71-7d8d56ca35d4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e34d742d4c9fff3bed70ac59a25f077408c52e61109eb2122d8ebe5602b3665f"
+  },
+  "id": "GcDXiL3WEGRWAF7W",
+  "tags": []
+}
